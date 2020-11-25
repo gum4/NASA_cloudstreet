@@ -19,7 +19,7 @@ import shutil
              
 BATCH_SIZE = 20
 LR = 0.001              
-EPOCH = 1  
+EPOCH = 3
 
 
 
@@ -152,7 +152,7 @@ for epoch in range(EPOCH):
         
         for i in range(0,len(output)): 
             res=0
-            if output[i][0]<output[i][1]:
+            if output[i][0]<=output[i][1]:
                 res=1
             if res==b_y[i]:
                 if res==0:
@@ -160,4 +160,5 @@ for epoch in range(EPOCH):
                 else:
                     correct2=correct2+1
                 
-correct1/len(test_P2),correct2/len(test_P1)
+correct1/(EPOCH*len(test_P2)),correct2/(EPOCH*len(test_P1))
+(correct1+correct2)/(EPOCH*len(test_dataset))
