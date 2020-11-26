@@ -19,7 +19,7 @@ import shutil
              
 BATCH_SIZE = 20
 LR = 0.001              
-EPOCH = 3
+EPOCH = 4
 
 
 
@@ -74,7 +74,7 @@ for file in test_p2:
 
 normalize = transforms.Normalize([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
 train_transform = transforms.Compose([
-    transforms.Resize((100, 100)), 
+    transforms.Resize((128, 128)), 
     #transforms.RandomVerticalFlip(), 
     transforms.ToTensor(), 
     normalize])
@@ -109,7 +109,7 @@ class CNN(nn.Module):
             nn.ReLU(),                      
             nn.MaxPool2d(2),                # (32, 25, 25)
         )
-        self.fc = nn.Linear(32 * 25 * 25, 120)
+        self.fc = nn.Linear(32 * 32 * 32, 120)
         self.out = nn.Linear(120, 2)
         #self.out = nn.Linear(32 * 25 * 25, 2)   # fully connected layer, output 2 classes
 
@@ -159,6 +159,16 @@ for epoch in range(EPOCH):
                     correct1=correct1+1
                 else:
                     correct2=correct2+1
-                
-correct1/(EPOCH*len(test_P2)),correct2/(EPOCH*len(test_P1))
-(correct1+correct2)/(EPOCH*len(test_dataset))
+true_positive=correct2
+true_negative=correct1
+false_negative=EPOCH*len(test_P1)-true_positive
+false_positive=EPOCH*len(test_P2)-true_negative
+
+Accuracy = (true_positive + true_negative) / (true_positive + false_positive + true_negative + false_negative)
+Precision = true_positive / (true_positive + false_positive) ##Precision##
+
+Recall = true_positive / (true_positive + false_negative) ##Recall##
+
+F1_score = 2* (Precision*Recall)/(Precision+Recall)
+print(Accuracy, Precision,Recall,F1_score)
+
