@@ -11,7 +11,7 @@ import glob
 from torchvision import transforms
 from torchvision.datasets import ImageFolder
 from torch.utils.data import DataLoader
-
+import matplotlib.pyplot as plt
 import shutil
 # torch.manual_seed(1)    # reproducible
 
@@ -19,7 +19,7 @@ import shutil
              
 BATCH_SIZE = 20
 LR = 0.001              
-EPOCH = 4
+EPOCH = 1
 
 
 
@@ -42,6 +42,8 @@ Paths1 = glob.glob(CLOUD_PATH1+'/*.jpg')
 Paths2 = glob.glob(CLOUD_PATH2+'/*.jpg')
 test_P1 =glob.glob(CLOUD_TEST_PATH1+'/*.jpg')
 test_P2 =glob.glob(CLOUD_TEST_PATH2+'/*.jpg')
+
+
 JPG1,JPG2=[],[]
 for item in Paths1:
     tmp=item.split('/')
@@ -56,13 +58,15 @@ spli1,spli2=int(9*len(JPG1)/10),int(9*len(JPG2)/10)
 
 test_p1, test_p2 = JPG1[spli1:],JPG2[spli2:]
 
+#################################
 #####  at most excute once  #####
 for file in test_p1:
     shutil.move(CLOUD_PATH1+'/'+file,CLOUD_TEST_PATH1+'/'+file)
 for file in test_p2:
     shutil.move(CLOUD_PATH2+'/'+file,CLOUD_TEST_PATH2+'/'+file)
 #####  at most excute once  #####
-
+#################################
+    
 #tag=[]
 #for item in paths2:
 #    tag.append(0)
@@ -89,6 +93,8 @@ train_dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True
 
 test_dataset = ImageFolder(CLOUD_TEST_PATH, transform=train_transform)
 test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=True)
+
+
 
 class CNN(nn.Module):
     def __init__(self):
@@ -128,20 +134,23 @@ cnn = CNN()
 optimizer = torch.optim.Adam(cnn.parameters(), lr=LR)   
 loss_func = nn.CrossEntropyLoss()                      
 
-
+#loss_stor,step_stor=[],[]
 
 # training and testing
 for epoch in range(EPOCH):
     for step, (b_x, b_y) in enumerate(train_dataloader):   
         
         output = cnn(b_x)             
-        loss = loss_func(output, b_y)   
+        loss = loss_func(output, b_y)
+        
         optimizer.zero_grad()           
         loss.backward()                 
         optimizer.step()         
         
         if step % 10 == 0:
             print(loss)
+        #    loss_stor.append(loss)
+        #    step_stor.append(step)
 
 correct1,correct2=0,0
 for epoch in range(EPOCH):
@@ -154,21 +163,29 @@ for epoch in range(EPOCH):
             res=0
             if output[i][0]<=output[i][1]:
                 res=1
+            #print(output[i][0], output[i][1],b_y[i])
             if res==b_y[i]:
                 if res==0:
                     correct1=correct1+1
                 else:
                     correct2=correct2+1
+
+print(correct1, correct2)
 true_positive=correct2
 true_negative=correct1
-false_negative=EPOCH*len(test_P1)-true_positive
-false_positive=EPOCH*len(test_P2)-true_negative
+
+false_negative=EPOCH*len(test_p1)-true_positive
+false_positive=EPOCH*len(test_p2)-true_negative
+
 
 Accuracy = (true_positive + true_negative) / (true_positive + false_positive + true_negative + false_negative)
 Precision = true_positive / (true_positive + false_positive) ##Precision##
 
+
 Recall = true_positive / (true_positive + false_negative) ##Recall##
 
 F1_score = 2* (Precision*Recall)/(Precision+Recall)
-print(Accuracy, Precision,Recall,F1_score)
+print('Accuracy is:', Accuracy)
+print('Precision is:', Precision)
+
 
